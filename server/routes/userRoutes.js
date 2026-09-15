@@ -9,7 +9,11 @@ const {
   updateGenres,
 } = require('../controllers/UserController');
 
+const { authenticate } = require('../middleware/auth');
+
 const router = express.Router();
+
+router.use(authenticate);
 
 router.get('/:id', getUserLists);
 router.put('/:id/genres', updateGenres);

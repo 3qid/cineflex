@@ -47,35 +47,51 @@ function App() {
       const u = { id: data.user.id, name: data.user.name, email: data.user.email }
       setUser(u)
       localStorage.setItem('cine_user', JSON.stringify(u))
+      localStorage.setItem('cine_token', data.token)
       setAuthMsg('')
       setShowAuth(false)
       setEmail(''); setPassword(''); setName('')
     } catch { setAuthMsg('Could not connect to server') }
   }, [authMode, email, password, name])
 
-  function logout() {
+  const logout = useCallback(() => {
     setUser(null)
     localStorage.removeItem('cine_user')
+    localStorage.removeItem('cine_token')
     setLists({ favorites: [], watchLater: [], watching: [], watchlist: [], history: [], genres: [] })
     setPage('search')
     setResults([])
     setSearched(false)
-  }
+  }, [])
+
+  const authFetch = useCallback(async (url, options = {}) => {
+    const headers = { ...(options.headers || {}) }
+    const token = localStorage.getItem('cine_token')
+    if (token) headers.Authorization = `Bearer ${token}`
+    const res = await fetch(url, { ...options, headers })
+    if (res.status === 401) logout()
+    return res
+  }, [logout])
 
   useEffect(() => {
     if (!user) return
     let cancelled = false
-    fetch(`${API}/user/${user.id}`)
-      .then((r) => r.json())
-      .then((d) => { if (!cancelled && d.success) setLists(d) })
+    fetch(`${API}/user/${user.id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('cine_token') || ''}` },
+    })
+      .then((r) => {
+        if (r.status === 401) { logout(); return null }
+        return r.json()
+      })
+      .then((d) => { if (!cancelled && d) setLists(d) })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [user])
+  }, [user, logout])
 
   const recordHistory = useCallback(async (term) => {
     if (!user) return
     try {
-      const res = await fetch(`${API}/user/history/${user.id}`, {
+      const res = await authFetch(`${API}/user/history/${user.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ term }),
@@ -83,7 +99,7 @@ function App() {
       const data = await res.json()
       if (data.success) setLists((p) => ({ ...p, history: data.history }))
     } catch { /* ignored */ }
-  }, [user])
+  }, [user, authFetch])
 
   useEffect(() => {
     if (!showProfileMenu) return
@@ -135,7 +151,7 @@ function App() {
   async function addToList(ln, item) {
     if (!user) { setShowAuth(true); return }
     try {
-      const res = await fetch(`${API}/user/${user.id}/${ln}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) })
+      const res = await authFetch(`${API}/user/${user.id}/${ln}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) })
       const data = await res.json()
       if (data.success) setLists((p) => ({ ...p, [ln]: data[ln] }))
     } catch { /* ignored */ }
@@ -144,7 +160,7 @@ function App() {
   async function removeFromList(ln, item) {
     if (!user) return
     try {
-      const res = await fetch(`${API}/user/${user.id}/${ln}/${item.id}`, { method: 'DELETE' })
+      const res = await authFetch(`${API}/user/${user.id}/${ln}/${item.id}`, { method: 'DELETE' })
       const data = await res.json()
       if (data.success) setLists((p) => ({ ...p, [ln]: data[ln] }))
     } catch { /* ignored */ }
@@ -153,7 +169,7 @@ function App() {
   async function updateReach(item, season, episode) {
     if (!user) return
     try {
-      const res = await fetch(`${API}/user/${user.id}/watchlist/${item.id}/reach`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ season, episode }) })
+      const res = await authFetch(`${API}/user/${user.id}/watchlist/${item.id}/reach`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ season, episode }) })
       const data = await res.json()
       if (data.success) setLists((p) => ({ ...p, watchlist: data.watchlist }))
     } catch { /* ignored */ }
@@ -171,7 +187,7 @@ function App() {
     const next = current.includes(genre) ? current.filter((g) => g !== genre) : [...current, genre]
     setShowGenresMsg('')
     try {
-      const res = await fetch(`${API}/user/${user.id}/genres`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ genres: next }) })
+      const res = await authFetch(`${API}/user/${user.id}/genres`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ genres: next }) })
       const data = await res.json()
       if (data.success) {
         setLists((p) => ({ ...p, genres: data.genres }))
@@ -183,7 +199,7 @@ function App() {
   async function deleteHistoryItem(term) {
     if (!user) return
     try {
-      const res = await fetch(`${API}/user/history/${user.id}/${encodeURIComponent(term)}`, { method: 'DELETE' })
+      const res = await authFetch(`${API}/user/history/${user.id}/${encodeURIComponent(term)}`, { method: 'DELETE' })
       const data = await res.json()
       if (data.success) setLists((p) => ({ ...p, history: data.history }))
     } catch { /* ignored */ }

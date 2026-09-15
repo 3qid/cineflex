@@ -4,7 +4,7 @@ const LIST_NAMES = ["favorites", "watchLater", "watching", "watchlist", "history
 
 exports.getUserLists = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.userId;
 
     const user = await User.findByPk(id);
 
@@ -35,7 +35,7 @@ exports.getUserLists = async (req, res) => {
 
 exports.updateGenres = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.userId;
     const { genres } = req.body;
 
     const user = await User.findByPk(id);
@@ -73,7 +73,8 @@ exports.updateGenres = async (req, res) => {
 
 exports.addToList = async (req, res) => {
   try {
-    const { id, listName } = req.params;
+    const id = req.userId;
+    const { listName } = req.params;
     const item = req.body;
 
     if (!LIST_NAMES.includes(listName)) {
@@ -126,7 +127,8 @@ exports.addToList = async (req, res) => {
 
 exports.removeFromList = async (req, res) => {
   try {
-    const { id, listName, itemId } = req.params;
+    const id = req.userId;
+    const { listName, itemId } = req.params;
 
     if (!LIST_NAMES.includes(listName)) {
       return res.status(400).json({
@@ -168,7 +170,8 @@ exports.removeFromList = async (req, res) => {
 
 exports.updateReach = async (req, res) => {
   try {
-    const { id, listName, itemId } = req.params;
+    const id = req.userId;
+    const { listName, itemId } = req.params;
     const { season, episode } = req.body;
 
     if (!LIST_NAMES.includes(listName)) {
@@ -222,7 +225,7 @@ exports.updateReach = async (req, res) => {
 
 exports.recordSearch = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.userId;
     const { term } = req.body;
 
     if (!term || typeof term !== "string" || !term.trim()) {
@@ -265,7 +268,8 @@ exports.recordSearch = async (req, res) => {
 
 exports.deleteHistory = async (req, res) => {
   try {
-    const { id, term } = req.params;
+    const id = req.userId;
+    const { term } = req.params;
 
     const user = await User.findByPk(id);
 
