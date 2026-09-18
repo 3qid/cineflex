@@ -25,8 +25,6 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
-      - key: TMDB_KEY
-        sync: false
       - key: TMDB_READ_ACCESS_KEY
         sync: false
       - key: JWT_SECRET
