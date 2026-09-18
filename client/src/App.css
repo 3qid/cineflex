@@ -170,6 +170,13 @@ input, button { font: inherit; }
 /* EMPTY */
 .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px 0; }
 
+/* FOR YOU */
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.page-head .page-title { margin-bottom: 0; }
+.rec-section { margin-bottom: 28px; }
+.rec-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+.rec-title::after { content: ''; display: block; width: 40px; height: 3px; border-radius: 2px; background: var(--accent); margin-top: 6px; }
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
   .sidebar { display: none; }

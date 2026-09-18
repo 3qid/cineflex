@@ -33,6 +33,11 @@ function App() {
   const [detailLoading, setDetailLoading] = useState(false)
   const [openSeasons, setOpenSeasons] = useState({})
 
+  const [recs, setRecs] = useState({ forYou: [], similar: [], trending: [] })
+  const [recLoading, setRecLoading] = useState(false)
+  const [recError, setRecError] = useState('')
+  const [recTick, setRecTick] = useState(0)
+
   const img = (p, lg) => p ? `${lg ? IMG_LG : IMG}${p}` : ''
 
   const doAuth = useCallback(async (e) => {
@@ -205,6 +210,30 @@ function App() {
     } catch { /* ignored */ }
   }
 
+  const loadRecs = useCallback(async () => {
+    setRecLoading(true)
+    setRecError('')
+    try {
+      const res = await authFetch(`${API}/recommendations`)
+      const data = await res.json()
+      if (!res.ok) { setRecError(data.message || 'Could not load recommendations'); return }
+      setRecs({ forYou: data.forYou || [], similar: data.similar || [], trending: data.trending || [] })
+    } catch { setRecError('Could not connect to server') }
+    finally { setRecLoading(false) }
+  }, [authFetch])
+
+  useEffect(() => {
+    if (page !== 'forYou') return
+    const id = setTimeout(loadRecs, 0)
+    return () => clearTimeout(id)
+  }, [page, recTick, loadRecs])
+
+  const REC_SECTIONS = [
+    { key: 'forYou', title: 'Based on your taste' },
+    { key: 'similar', title: 'Because you liked...' },
+    { key: 'trending', title: 'Trending now' },
+  ]
+
   const FILTERS = [
     { id: 'both', label: 'All' },
     { id: 'movie', label: 'Movies' },
@@ -212,6 +241,7 @@ function App() {
   ]
 
   const SIDEBAR_ITEMS = user ? [
+    { id: 'forYou', icon: '🎯', label: 'For You' },
     { id: 'search', icon: '🔍', label: 'Search' },
     { id: 'watchlist', icon: '📋', label: 'My Watchlist' },
     { id: 'watchLater', icon: '⏳', label: 'Watch Later' },
@@ -423,6 +453,35 @@ function App() {
                   <h2>Welcome to CineFlex</h2>
                   <p>Search for any movie or TV series to get started.</p>
                 </div>
+              )}
+            </>
+          )}
+
+          {/* FOR YOU PAGE */}
+          {page === 'forYou' && (
+            <>
+              <div className="page-head">
+                <h2 className="page-title">For You</h2>
+                <button type="button" className="btn-ghost btn-sm" onClick={() => setRecTick((t) => t + 1)} disabled={recLoading}>↻ Refresh</button>
+              </div>
+              {recLoading && <p className="status">Curating your picks...</p>}
+              {recError && <p className="error">{recError}</p>}
+              {REC_SECTIONS.map((sec) => {
+                const items = recs[sec.key] || []
+                if (items.length === 0) return null
+                return (
+                  <section key={sec.key} className="rec-section">
+                    <h3 className="rec-title">{sec.title}</h3>
+                    <div className="results">
+                      {items.map((item) => (
+                        <Card key={`${item.type}-${item.id}`} item={item} img={img} inList={inList} toggle={toggle} onDetail={openDetail} />
+                      ))}
+                    </div>
+                  </section>
+                )
+              })}
+              {!recLoading && !recError && !REC_SECTIONS.some((s) => (recs[s.key] || []).length > 0) && (
+                <p className="empty">Pick a few favorite categories in your profile or save some titles, and we'll build your picks here.</p>
               )}
             </>
           )}

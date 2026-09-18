@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: cineflex
+    runtime: node
+    repo: https://github.com/3qid/cineflex
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_SSL
+        value: "true"
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: TMDB_KEY
+        sync: false
+      - key: TMDB_READ_ACCESS_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false

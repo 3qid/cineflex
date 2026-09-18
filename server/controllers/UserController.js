@@ -17,7 +17,7 @@ exports.getUserLists = async (req, res) => {
 
     return res.json({
       success: true,
-      favorite: user.favorites || [],
+      favorites: user.favorites || [],
       watchLater: user.watchLater || [],
       watching: user.watching || [],
       watchlist: user.watchlist || [],

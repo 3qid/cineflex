@@ -11,6 +11,7 @@ const { sequelize, testDbConnection } = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
 const { search, tvDetails, tvSeries } = require('./controllers/SearchController');
 
 const CLIENT_DIST = path.join(__dirname, '..', 'client', 'dist');
@@ -27,6 +28,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 app.get('/api/search', search);
 app.get('/api/tv/:id', tvDetails);
 app.get('/api/tvseries', tvSeries);
