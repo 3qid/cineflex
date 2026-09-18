@@ -17,7 +17,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@sequelize/core": "7.0.0-alpha.48",
     "@sequelize/mysql": "^7.0.0-alpha.48",
+    "cookie-parser": "^1.4.7",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
